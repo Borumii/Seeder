@@ -8,25 +8,19 @@ public class Song {
 	private double seed_value;
 	
 	//just make it easier to keep track of where it's being store
-	//index is position in the collection
 	//index_shuffle is the position of the 
-	//idk if we are doing alpha order, but I want to keep this here for moving it from collection easier
-	private int index;
 	
 	//this set of parameter is use for 
-	private int index_shuffle;
-	private int left_sum;
-	private int right_sum;
+	private double left_sum;
+	private double right_sum;
 	
 	//this is the set of variable for the playlist
 	private int index_playlist;
 	
 	//constructor, there is no memory allocation so I won't bother with big 5
-	Song(double seed_value, int index,String name){
-		this.setIndex(index);
+	Song(double seed_value,String name){
 		
-		//placeholder, but realisticly we are using the Collection to handle this shit
-		setIndex_shuffle(-1);
+		//placeholder, but realisticly we are using the Collection to handle this stuff
 		setLeft_sum(0);
 		setRight_sum(0);
 		setName(name);
@@ -47,35 +41,19 @@ public class Song {
 		this.seed_value = seed_vaule;
 	}
 
-	public int getIndex() {
-		return index;
-	}
-
-	public void setIndex(int index) {
-		this.index = index;
-	}
-
-	public int getIndex_shuffle() {
-		return index_shuffle;
-	}
-
-	public void setIndex_shuffle(int index_shuffle) {
-		this.index_shuffle = index_shuffle;
-	}
-
-	public int getLeft_sum() {
+	public double getLeft_sum() {
 		return left_sum;
 	}
 
-	public void setLeft_sum(int left_sum) {
+	public void setLeft_sum(double left_sum) {
 		this.left_sum = left_sum;
 	}
 
-	public int getRight_sum() {
+	public double getRight_sum() {
 		return right_sum;
 	}
 
-	public void setRight_sum(int right_sum) {
+	public void setRight_sum(double right_sum) {
 		this.right_sum = right_sum;
 	}
 
