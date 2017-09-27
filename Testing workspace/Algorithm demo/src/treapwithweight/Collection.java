@@ -1,6 +1,7 @@
 package treapwithweight;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Collection {
 
@@ -18,6 +19,7 @@ public class Collection {
 	Collection(){}
 
 	//perform bubble down at a certain index, no recursion from array
+	//TODO might use a temporary pointer for the constant arraylist access
 	private void bubbledown(int index) {
 
 		//exit the loop (cause overflow is a thing)
@@ -73,6 +75,7 @@ public class Collection {
 	}
 
 	//bubble up from index
+	//TODO might use a temporary pointer for the constant arraylist access
 	private void bubbleUp(int index) {
 		//exit the loop (cause overflow is a thing)
 		boolean exit = false;
@@ -105,36 +108,41 @@ public class Collection {
 		}
 	}
 
-
 	//adding a song to the playlist
+	//TODO fix indexing problems
 	void addsong(Song g) {
 		playlist.add(g);
 
 		shuffle.add(g);
 		
 		//need bubble up to do something else with the indexing, so this will do for now
-		//update the weights from above
+		//update the weights from above, to make bubble up smoother 
 		double seed_val = g.getSeed_value();
 		int index = shuffle.size() - 1;
 		while(index !=0) {
-			if(index/2 ==0) {
-				shuffle.get(index/2).setLeft_sum(shuffle.get(index/2).getLeft_sum() + seed_val);
+			if(index%2 ==0) {
+				shuffle.get((index-1)/2).setLeft_sum(shuffle.get(index/2).getLeft_sum() + seed_val);
 			}
 			else {
-				shuffle.get(index/2).setRight_sum(shuffle.get(index/2).getRight_sum() + seed_val);
+				shuffle.get((index-1)/2).setRight_sum(shuffle.get(index/2).getRight_sum() + seed_val);
 			}
 			
-			index = index/2;
+			index = (index-1)/2;
 		}
 		
 		bubbleUp(shuffle.size() - 1);
 	}
 	
+	//remove a song base index within the playlist
 	Song remove(int index) {
 		Song return_temp = playlist.get(index);
 		int pos_in_shuffle = shuffle.indexOf(return_temp);
 		
 		//set the last element to the to be remove element
+		Song bot = shuffle.get(shuffle.size()-1);
+		bot.setLeft_sum(return_temp.getLeft_sum());
+		bot.setRight_sum(return_temp.getRight_sum());
+		
 		shuffle.set(pos_in_shuffle, shuffle.get(shuffle.size()-1));
 		shuffle.remove(shuffle.size()-1);
 		
@@ -143,6 +151,51 @@ public class Collection {
 		playlist.remove(index);
 		
 		return return_temp;
+	}
+	
+	//this is ment to extract a song from the collection randomly base on the seed value
+	//Huni, Hi, fb message me "some think random" so that I know you read the code, (yes there is a typo on purpose)
+	//another question, should we make the whole song extract thing internal or we will handle it in the app intent
+	Song removesuffle() {
+		double rand = Math.random()*getWeight();
+		
+		//I want to keep the method call clean, so that is why i make this stuff
+		return removeShuffleRecur(rand,0);
+	}
+	
+	//remove a song base on the shuffling list (base on weight), who knows when a helper function is actually used
+	//to handle the recursion
+	private Song removeShuffleRecur(double curseedvaule,int index){
+		//I don't want to access it the index element a billion time, so here we are
+		Song curNode = shuffle.get(index);
+		
+		//Use the "binary search tree" ish algorithm  
+		if (curseedvaule > curNode.getLeft_sum() && curseedvaule < curNode.getLeft_sum() + curNode.getSeed_value()) {
+			//set the last element to the to be remove element
+			
+			//remove the current index, put the bottom node to the new position
+			shuffle.set(index, shuffle.get(shuffle.size()-1));
+			shuffle.remove(shuffle.size()-1);
+			
+			bubbledown(index);
+			
+			return curNode;
+		}
+		
+		//recursion 
+		else if(curseedvaule < curNode.getLeft_sum()) {
+			return removeShuffleRecur(curseedvaule, 2*index+1);
+		}
+		else {
+			return removeShuffleRecur(curseedvaule, 2*index+2);
+		}
+	}
+	
+	
+	//get the total seed weight of the program 
+	double getWeight() {
+		
+		return shuffle.get(0).getsum();
 	}
 
 
