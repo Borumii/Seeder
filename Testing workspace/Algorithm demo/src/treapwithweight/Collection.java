@@ -29,10 +29,11 @@ public class Collection {
 		}
 
 		else {
-			oldVal = shuffle.get(indexShuffleList).getSeed_value();
 			Song curShuffleEnt = shuffle.get(indexShuffleList);
+			oldVal = curShuffleEnt.getSeed_value();
 			g.setLeft_sum(curShuffleEnt.getLeft_sum());
 			g.setRight_sum(curShuffleEnt.getRight_sum());
+			shuffle.remove(indexShuffleList);
 			shuffle.add(indexShuffleList, g);
 
 			if(indexShuffleList == 0) {
@@ -42,15 +43,18 @@ public class Collection {
 
 		//update values on top, a bit inefficient, but rt is about the same 
 		while(indexShuffleList != 0){
-			indexShuffleList = (indexShuffleList -1)/2;
-			Song curShuffleEnt = shuffle.get(indexShuffleList); 
+
+			Song curShuffleEnt = shuffle.get((indexShuffleList -1)/2); 
+
+
 
 			if(indexShuffleList%2 == 0) {
 				curShuffleEnt.setRight_sum(curShuffleEnt.getRight_sum() + curVal - oldVal);
 			}
 			else {
-				curShuffleEnt.setRight_sum(curShuffleEnt.getRight_sum() + curVal - oldVal);
+				curShuffleEnt.setLeft_sum(curShuffleEnt.getLeft_sum() + curVal - oldVal);
 			}
+			indexShuffleList = (indexShuffleList-1)/2;
 		}
 	}
 
@@ -64,41 +68,44 @@ public class Collection {
 			return shuffle.remove(0);
 		}
 
-		Song return_temp = shuffle.get(shuffle.size()-1);
+		Song return_temp = shuffle.remove(shuffle.size()-1);
 
 		int indexShuffleList = shuffle.size();
 
 		while(indexShuffleList != 0){
-			indexShuffleList = (indexShuffleList -1)/2;
-			Song curShuffleEnt = shuffle.get(indexShuffleList); 
+			Song curShuffleEnt = shuffle.get((indexShuffleList -1)/2); 
 
-			if(indexShuffleList%2 == 0) {
-				curShuffleEnt.setRight_sum(curShuffleEnt.getRight_sum() - return_temp.getSeed_value());
+
+			if(indexShuffleList%2 == 1) {
+				curShuffleEnt.setLeft_sum(curShuffleEnt.getLeft_sum() - return_temp.getSeed_value());
 			}
 			else {
 				curShuffleEnt.setRight_sum(curShuffleEnt.getRight_sum() -  return_temp.getSeed_value());
 			}
+			indexShuffleList = (indexShuffleList -1)/2;
 		}
-
 		return return_temp;
 	}
 
+
 	private void bubbledown(int index) {
 		//check if there is a layer below
-		LPend: while(2*index+1< shuffle.size()) {
+		while(2*index+1 < shuffle.size()) {
 			//bubble down right 
-			
+
 			Song curIndex = shuffle.get(index);
 			Song leftLeaf = shuffle.get(2*index+1);
 			
-			if(2*index+2 < shuffle.size()) {
+			//a counter to see if the current node have bubbledown
+			boolean contIf= true;
 
+			if(2*index+2 < shuffle.size()) {				
 				Song rightLeaf = shuffle.get(2*index+2);
 				//checking if the right size is bigger than both left and right
 				if(curIndex.getSeed_value() <  rightLeaf.getSeed_value() && 
 						leftLeaf.getSeed_value() <  rightLeaf.getSeed_value() ) {
 					double temp_left = rightLeaf.getLeft_sum();
-					double temp_right = rightLeaf.getLeft_sum();
+					double temp_right = rightLeaf.getRight_sum();
 
 					//swapping index positions
 					shuffle.set(index, rightLeaf);
@@ -111,15 +118,17 @@ public class Collection {
 
 					//update for the next iteration of the loop
 					index = 2*index +2;
+					
+					contIf = false;
 				}
 			}
 			//bubble down left
-			else if(curIndex.getSeed_value() <  leftLeaf.getSeed_value() ) {
+			if(curIndex.getSeed_value() <  leftLeaf.getSeed_value() && contIf) {
 				double temp_left = leftLeaf.getLeft_sum();
-				double temp_right = leftLeaf.getLeft_sum();
+				double temp_right = leftLeaf.getRight_sum();
 
 				//swapping index positions
-				shuffle.set(index, shuffle.get(2*index));
+				shuffle.set(index,leftLeaf);
 				leftLeaf.setLeft_sum(curIndex.getLeft_sum() + curIndex.getSeed_value()-shuffle.get(index).getSeed_value());
 				leftLeaf.setRight_sum(curIndex.getRight_sum());
 
@@ -131,8 +140,8 @@ public class Collection {
 				index = 2*index +1;
 			}
 
-			else {
-				break LPend; 
+			else if(contIf){
+				return;
 			}	
 		}
 	}
@@ -140,34 +149,38 @@ public class Collection {
 	//bubble up from index
 	private void bubbleUp(int index) {
 		//exit the loop (cause overflow is a thing)
-		boolean exit = false;
 
-		while(index != 0 && exit){
+		while(index != 0){
 			Song curIndex = shuffle.get(index);
 			Song parentNode = shuffle.get((index-1)/2);
-			
-			if(parentNode.getSeed_value() <  curIndex.getSeed_value() ) {
-				double temp_left =parentNode.getLeft_sum();
-				double temp_right = parentNode.getLeft_sum();
 
-				shuffle.set(index, parentNode);
-				
+			if(parentNode.getSeed_value() <  curIndex.getSeed_value() ) {
+				double temp_left =curIndex.getLeft_sum();
+				double temp_right = curIndex.getRight_sum();
+
 				//swapping index positions
-				if(index%2 == 0) {
-					parentNode.setLeft_sum(curIndex.getLeft_sum() + curIndex.getSeed_value()-parentNode.getSeed_value());
-					parentNode.setRight_sum(curIndex.getRight_sum());
+				if(index%2 == 1) {
+					curIndex.setLeft_sum(parentNode.getLeft_sum() + parentNode.getSeed_value()-curIndex.getSeed_value());
+					curIndex.setRight_sum(parentNode.getRight_sum());
 				}
 
 				else {
-					parentNode.setRight_sum(curIndex.getRight_sum() + curIndex.getSeed_value()-parentNode.getSeed_value());
-					parentNode.setLeft_sum(curIndex.getLeft_sum());
+					curIndex.setRight_sum(parentNode.getRight_sum() + parentNode.getSeed_value()-curIndex.getSeed_value());
+					curIndex.setLeft_sum(parentNode.getLeft_sum());
 				}
+
+
+				parentNode.setLeft_sum(temp_left);
+				parentNode.setRight_sum(temp_right);
+
+				shuffle.set(index, parentNode);
 				shuffle.set((index-1)/2, curIndex);
-				curIndex.setLeft_sum(temp_left);
-				curIndex.setRight_sum(temp_right);
 
 				//update for the next iteration of the loop
-				index = index/2;
+				index = (index-1)/2;
+			}
+			else {
+				return;
 			}
 		}
 	}
@@ -184,21 +197,23 @@ public class Collection {
 		Song return_temp = playlist.get(insertIndex) ;
 		int pos_in_shuffle = shuffle.indexOf(return_temp);
 
-		if(pos_in_shuffle != shuffle.size()) {
+		if(pos_in_shuffle != shuffle.size()-1) {
 			Song lastEnt = removeLastShuffle();
 
 			insertShuffle(lastEnt, pos_in_shuffle);
 
+			
 			//there is internal mag for checking lol.
+
 			bubbleUp(pos_in_shuffle);
 			bubbledown(pos_in_shuffle);
+			System.out.println(logString());
 
 		}
 
 		else {
 			removeLastShuffle();
 		}
-
 
 		playlist.remove(insertIndex);
 		return return_temp;
@@ -241,24 +256,36 @@ public class Collection {
 			return removeShuffleRecur(curseedvaule, 2*index+1);
 		}
 		else {
-			return removeShuffleRecur(curseedvaule, 2*index+2);
+			return removeShuffleRecur(curseedvaule - curNode.getLeft_sum() - curNode.getSeed_value() , 2*index+2);
 		}
 	}
 
 
 	//get the total seed weight of the program 
-	double getWeight() {
+	public double getWeight() {
 		return shuffle.get(0).getsum();
 	}
 
 
-	//getter for the playlist
+	//getter for the playlist (I want this to be exported as an non object thing)
+	//my suggestion will be 
 	public ArrayList<Song> getPlaylist() {
 		return playlist;
 	}
 
-	public ArrayList<Song> getShuffle() {
-		return shuffle;
+	//display the song in text format()
+	public String logString() {
+		String rtnStr = "";
+		for(int i = 0; i< playlist.size();i++) {
+			Song tempStor = playlist.get(i);
+			rtnStr += "index " + i + ": " + tempStor.getName() + " " + tempStor.getSeed_value() + " " + tempStor.getLeft_sum() + " " + tempStor.getRight_sum() + "\n";
+		}
+
+		for(int i = 0; i< shuffle.size();i++) {
+			Song tempStor = shuffle.get(i);
+			rtnStr += tempStor.getName() + " " + tempStor.getSeed_value() + " " + tempStor.getLeft_sum() + " " + tempStor.getRight_sum() + "\n";
+		}
+		return rtnStr;
 	}
 }
 
