@@ -1,7 +1,3 @@
 # Seeder
 
-THIS PROJECT IS CURRENTLY HIJACKED BY DANGOMAN
-
-Let's see how long does it take for the owner to notice
-
-Commit since this was made: 1
+Project in development. Seeder aims to use mathematical models to enhance the user experience of a music player beyond its basic functionalities.
